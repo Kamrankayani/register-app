@@ -2,7 +2,11 @@ pipeline {
     agent {
         label 'jenkins-agent'
     }
+    environment {
+        KUBECONFIG_CRED = 'kubernetes'
+    }
 
+  
     tools {
         // Install the Maven version configured as "M3" and add it to the path.
         maven 'maven3'
@@ -63,7 +67,20 @@ pipeline {
             }
         }
             
-        
+        stages {
+        stage('Deploy to Kubernetes') {
+            steps {
+                withCredentials([string(credentialsId: KUBECONFIG_CRED, variable: 'KUBECONFIG_CONTENT')]) {
+                    sh '''
+                    echo "$KUBECONFIG_CONTENT" > kubeconfig
+                    export KUBECONFIG=kubeconfig
+                    kubectl get nodes
+                    '''
+                }
+            }
+        }
+      }
+
     }
 }
 
